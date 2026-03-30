@@ -87,15 +87,39 @@ cd CostcoReceiptExtracter
 npm install
 ```
 
-### 3. iOS only — install CocoaPods
+### 3. Android — create local.properties
+
+This file is gitignored (it's machine-specific) but **Android builds will fail without it**. Create `android/local.properties` and add one line pointing to your Android SDK:
+
+**macOS / Linux:**
+```
+sdk.dir=/Users/<YourUser>/Library/Android/sdk
+```
+
+**Windows:**
+```
+sdk.dir=C:\\Users\\<YourUser>\\AppData\\Local\\Android\\Sdk
+```
+
+Use double backslashes on Windows. This file is never committed — each developer creates it once.
+
+### 4. iOS only — install CocoaPods
+
+First install the Ruby gem dependencies (this pins the CocoaPods version via `Gemfile`):
+
+```bash
+bundle install
+```
+
+Then install the iOS native dependencies:
 
 ```bash
 cd ios
-pod install
+bundle exec pod install
 cd ..
 ```
 
-This must be re-run any time a new native dependency is added.
+Use `bundle exec pod install` (not bare `pod install`) to ensure the CocoaPods version from the `Gemfile` is used. Re-run this any time a new native dependency is added.
 
 ---
 
@@ -135,6 +159,18 @@ code .
 Or: **File → Open Folder** → select the `CostcoReceiptExtracter` directory.
 
 TypeScript IntelliSense works out of the box — the project includes `tsconfig.json` and all type definitions.
+
+---
+
+## Verify Your Environment
+
+Before running the app, check that all tools are correctly installed:
+
+```bash
+npx react-native doctor
+```
+
+This will flag any missing or misconfigured dependencies (JDK version, Android SDK, Xcode, etc.) with fix suggestions.
 
 ---
 
@@ -231,7 +267,7 @@ xcrun simctl list devices available
 rm -rf ~/Library/Developer/Xcode/DerivedData
 
 # Re-install pods from scratch
-cd ios && pod deintegrate && pod install && cd ..
+cd ios && pod deintegrate && bundle exec pod install && cd ..
 
 # Reset Metro cache
 npm start -- --reset-cache
@@ -323,6 +359,19 @@ Fuse.js builds an in-memory fuzzy index from all item names in the database on a
 ### Database
 
 SQLite via `@op-engineering/op-sqlite` — a JSI-based binding with no bridge overhead. Schema migrations are versioned sequentially in `src/db/migrations/` and applied automatically on startup.
+
+---
+
+## First-time macOS Setup Note
+
+`Podfile.lock` is not yet in the repo (the project was bootstrapped on Windows). The first time you run `bundle exec pod install` on macOS it will be generated. **Please commit `Podfile.lock` after that first run** so all subsequent developers get pinned pod versions:
+
+```bash
+cd ios && bundle exec pod install && cd ..
+git add ios/Podfile.lock Gemfile.lock
+git commit -m "Add Podfile.lock and Gemfile.lock"
+git push
+```
 
 ---
 
