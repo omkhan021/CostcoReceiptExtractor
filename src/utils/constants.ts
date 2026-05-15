@@ -25,7 +25,7 @@ export const COSTCO_WCS_CLIENT_ID_HEADER = 'costco-x-wcs-clientId';
 export const COSTCO_WCS_CLIENT_ID = '4900eb1f-0c10-4bd9-99c3-c59e6c1ecebf'; // static app-level ID
 
 // costco.com login page loaded in WebView for auth
-export const COSTCO_LOGIN_URL = 'https://www.costco.com/logon-instoreprint.html';
+export const COSTCO_LOGIN_URL = 'https://www.costco.com';
 export const COSTCO_HOME_URL = 'https://www.costco.com';
 
 // Receipts are fetched in 6-month windows per Costco API pagination

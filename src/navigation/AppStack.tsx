@@ -1,5 +1,5 @@
 import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import SyncScreen from '../screens/SyncScreen';
@@ -7,7 +7,7 @@ import ReceiptDetailScreen from '../screens/ReceiptDetailScreen';
 import type {AppStackParamList, AppTabParamList} from './types';
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
-const Stack = createStackNavigator<AppStackParamList>();
+const Stack = createNativeStackNavigator<AppStackParamList>();
 
 function Tabs() {
   return (
