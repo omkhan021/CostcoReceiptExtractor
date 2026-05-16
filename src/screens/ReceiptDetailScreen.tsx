@@ -64,6 +64,7 @@ export default function ReceiptDetailScreen() {
           <Text style={styles.date}>
             {formatDisplayDate(receipt.purchaseDate)}
           </Text>
+          <Text style={styles.barcode}>{receipt.id}</Text>
           <View style={styles.totalsRow}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>{total}</Text>
@@ -111,7 +112,13 @@ const styles = StyleSheet.create({
   date: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    marginBottom: 4,
+  },
+  barcode: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
     marginBottom: 12,
+    fontVariant: ['tabular-nums'],
   },
   totalsRow: {
     flexDirection: 'row',

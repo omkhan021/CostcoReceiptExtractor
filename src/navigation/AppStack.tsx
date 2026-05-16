@@ -1,4 +1,5 @@
 import React from 'react';
+import {Image} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -9,6 +10,9 @@ import type {AppStackParamList, AppTabParamList} from './types';
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
 const Stack = createNativeStackNavigator<AppStackParamList>();
+
+const SEARCH_ICON = require('../assets/icons/tab_search.png');
+const RECEIPTS_ICON = require('../assets/icons/tab_receipts.png');
 
 function Tabs() {
   const insets = useSafeAreaInsets();
@@ -29,12 +33,28 @@ function Tabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{tabBarLabel: 'Search'}}
+        options={{
+          tabBarLabel: 'Search',
+          tabBarIcon: ({color, size}) => (
+            <Image
+              source={SEARCH_ICON}
+              style={{width: size, height: size, tintColor: color}}
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="Sync"
         component={SyncScreen}
-        options={{tabBarLabel: 'Receipts'}}
+        options={{
+          tabBarLabel: 'My Receipts',
+          tabBarIcon: ({color, size}) => (
+            <Image
+              source={RECEIPTS_ICON}
+              style={{width: size, height: size, tintColor: color}}
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );

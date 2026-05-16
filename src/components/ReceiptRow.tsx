@@ -18,6 +18,7 @@ export default function ReceiptRow({receipt, onPress}: Props) {
           {receipt.warehouseName ?? 'Costco Warehouse'}
         </Text>
         <Text style={styles.date}>{formatDisplayDate(receipt.purchaseDate)}</Text>
+        <Text style={styles.barcode}>{receipt.id}</Text>
       </View>
       <Text style={styles.total}>{total}</Text>
     </TouchableOpacity>
@@ -53,6 +54,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     marginTop: 3,
+  },
+  barcode: {
+    fontSize: 11,
+    color: '#aaa',
+    marginTop: 2,
+    fontVariant: ['tabular-nums'],
   },
   total: {
     fontSize: 16,
