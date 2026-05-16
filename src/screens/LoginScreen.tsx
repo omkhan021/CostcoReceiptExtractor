@@ -68,6 +68,10 @@ export default function LoginScreen() {
         source={{uri: COSTCO_LOGIN_URL}}
         // No userAgent override — desktop UA on a mobile device trips Akamai's
         // bot manager. Let the WebView send its native Android Chrome UA.
+        // Incognito = no persistent cookies/storage. Critical for logout:
+        // otherwise a remembered Costco session auto-restores and we end up
+        // capturing a stale bearer token, bouncing the user back to AppStack.
+        incognito
         injectedJavaScript={WEBVIEW_AUTH_INJECTION}
         onLoadEnd={() => {
           // Re-inject on every navigation: injectedJavaScript only reliably fires
@@ -78,8 +82,6 @@ export default function LoginScreen() {
         onMessage={handleMessage}
         javaScriptEnabled
         domStorageEnabled
-        sharedCookiesEnabled
-        thirdPartyCookiesEnabled
         style={styles.webview}
       />
     </View>

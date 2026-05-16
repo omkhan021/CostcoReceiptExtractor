@@ -143,4 +143,10 @@ export interface SyncStatus {
   lastSyncAt: string | null;
   receiptsTotal: number;
   error: string | null;
+  // Diagnostic counters surfaced from the most recent sync run
+  fetched?: number;
+  inserted?: number;
+  skipped?: number;
+  failed?: number;
+  lastSkipReason?: string;
 }

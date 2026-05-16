@@ -105,6 +105,20 @@ export default function SyncScreen() {
             )}
           </TouchableOpacity>
         </View>
+        {(status.fetched !== undefined ||
+          status.inserted !== undefined ||
+          status.skipped !== undefined ||
+          status.failed !== undefined) && (
+          <Text style={styles.countsText}>
+            fetched {status.fetched ?? 0} · inserted {status.inserted ?? 0} ·
+            {' '}skipped {status.skipped ?? 0} · failed {status.failed ?? 0}
+          </Text>
+        )}
+        {status.lastSkipReason && (
+          <Text style={styles.errorText} numberOfLines={3}>
+            last skip: {status.lastSkipReason}
+          </Text>
+        )}
         {status.error && (
           <Text style={styles.errorText}>{status.error}</Text>
         )}
@@ -190,6 +204,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#ffcdd2',
+    fontSize: 12,
+    marginTop: 6,
+  },
+  countsText: {
+    color: 'rgba(255,255,255,0.85)',
     fontSize: 12,
     marginTop: 6,
   },

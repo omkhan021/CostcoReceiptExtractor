@@ -40,7 +40,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   clearCredentials: async () => {
-    await EncryptedStorage.removeItem(STORAGE_KEY_CREDENTIALS);
+    // Always clear in-memory state first — even if storage removal fails,
+    // we need RootNavigator to switch back to AuthStack so the user can
+    // recover. Otherwise a storage error leaves them stuck "logged in".
     set({credentials: null, isAuthenticated: false});
+    try {
+      await EncryptedStorage.removeItem(STORAGE_KEY_CREDENTIALS);
+    } catch (err) {
+      console.warn('[auth] removeItem failed (state cleared anyway)', err);
+    }
   },
 }));

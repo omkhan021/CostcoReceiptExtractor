@@ -51,11 +51,33 @@ function describeAxiosError(err: AxiosError): CostcoApiError {
   const code = err.code; // ECONNABORTED, ERR_NETWORK, ETIMEDOUT, etc.
   const body = err.response?.data;
   const bodyText =
-    typeof body === 'string' ? body : body ? JSON.stringify(body).slice(0, 300) : undefined;
+    typeof body === 'string'
+      ? body.slice(0, 500)
+      : body
+      ? JSON.stringify(body).slice(0, 500)
+      : undefined;
+
+  // Extract the request variables — useful for 4xx where the body is the
+  // result of what we sent. Costco's API is a POST to a single endpoint, so
+  // the variables in the request body identify which call this was.
+  let requestVars: string | undefined;
+  try {
+    if (err.config?.data) {
+      const parsed =
+        typeof err.config.data === 'string'
+          ? JSON.parse(err.config.data)
+          : err.config.data;
+      requestVars = JSON.stringify(parsed.variables).slice(0, 200);
+    }
+  } catch {
+    /* ignore */
+  }
 
   let message: string;
   if (status) {
-    message = `HTTP ${status}${bodyText ? `: ${bodyText}` : ''}`;
+    message = `HTTP ${status}`;
+    if (requestVars) message += ` vars=${requestVars}`;
+    if (bodyText) message += ` body=${bodyText}`;
   } else if (code === 'ECONNABORTED') {
     message = 'Request timed out after 30s';
   } else if (code === 'ERR_NETWORK' || err.message === 'Network Error') {
@@ -66,8 +88,7 @@ function describeAxiosError(err: AxiosError): CostcoApiError {
     message = err.message || 'Unknown network error';
   }
 
-  // Console log preserves full detail for `adb logcat` / Metro
-  console.warn('[CostcoApiError]', {url, status, code, message, body: bodyText});
+  console.warn('[CostcoApiError]', {url, status, code, requestVars, body: bodyText});
 
   return new CostcoApiError({message, status, code, url, responseBody: bodyText});
 }
@@ -182,11 +203,13 @@ const RECEIPT_DETAIL_QUERY = `
 
 /**
  * Fetch a specific receipt by barcode.
- * documentType: "warehouse" for in-store receipts
+ * documentType: pass "all" — it's a wildcard that works for every receipt
+ * type (warehouse, fuel, etc). Confirmed by direct API probing; specific
+ * values like "gas" or "GasStationReceiptDetail" all return HTTP 400.
  */
 export async function fetchReceiptDetail(
   barcode: string,
-  documentType: string = 'warehouse',
+  documentType: string = 'all',
 ): Promise<CostcoReceipt> {
   const client = getClient();
 
@@ -254,7 +277,13 @@ export async function fetchReceiptList(
   endDate: string,
   documentType: string = 'all',
   documentSubType: string = 'all',
-): Promise<Array<{transactionBarcode: string; transactionDateTime: string}>> {
+): Promise<
+  Array<{
+    transactionBarcode: string;
+    transactionDateTime: string;
+    documentType: string;
+  }>
+> {
   const client = getClient();
 
   const response = await client.post<ReceiptsWithCountsResponse>('', {
