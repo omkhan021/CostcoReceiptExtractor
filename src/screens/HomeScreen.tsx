@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import SearchBar from '../components/SearchBar';
 import ItemResultRow from '../components/ItemResultRow';
 import {useSearch} from '../hooks/useSearch';
@@ -18,6 +19,7 @@ type Nav = StackNavigationProp<AppStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const {query, results, isSearching, search} = useSearch();
 
   function handleSelectReceipt(receiptId: string, itemName: string) {
@@ -35,7 +37,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, {paddingTop: insets.top + 12}]}>
         <Text style={styles.title}>Receipt Search</Text>
         <SearchBar value={query} onChangeText={search} />
       </View>
@@ -76,7 +78,6 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#005DAA',
-    paddingTop: 48,
     paddingBottom: 12,
     paddingHorizontal: 16,
   },

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ReceiptRow from '../components/ReceiptRow';
 import {useSync} from '../hooks/useSync';
 import {useReceipts} from '../hooks/useReceipts';
@@ -17,15 +18,31 @@ import {formatDisplayDate} from '../utils/dateUtils';
 import type {AppStackParamList} from '../navigation/types';
 import type {Receipt} from '../types';
 import {useAuthStore} from '../store/authStore';
-import {initClient} from '../api/costcoClient';
+import {initClient, resetClient} from '../api/costcoClient';
 
 type Nav = StackNavigationProp<AppStackParamList>;
 
 export default function SyncScreen() {
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const {status, sync} = useSync();
   const {receipts, isLoading, reload} = useReceipts();
-  const {credentials} = useAuthStore();
+  const {credentials, clearCredentials} = useAuthStore();
+
+  function handleLogout() {
+    Alert.alert('Sign Out', 'Sign out of Costco? Your local receipts stay on this device.', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          resetClient();
+          await clearCredentials();
+          // RootNavigator switches back to AuthStack automatically.
+        },
+      },
+    ]);
+  }
 
   useEffect(() => {
     if (credentials) {
@@ -42,8 +59,14 @@ export default function SyncScreen() {
     try {
       await sync();
       reload();
-    } catch {
-      Alert.alert('Sync Failed', status.error ?? 'Unknown error. Check your connection.');
+    } catch (err) {
+      const detail =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'string'
+          ? err
+          : JSON.stringify(err);
+      Alert.alert('Sync Failed', detail);
     }
   }
 
@@ -58,8 +81,13 @@ export default function SyncScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Receipts</Text>
+      <View style={[styles.header, {paddingTop: insets.top + 12}]}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>My Receipts</Text>
+          <TouchableOpacity onPress={handleLogout} style={styles.signOutButton}>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.headerRow}>
           {status.lastSyncAt && (
             <Text style={styles.lastSync}>
@@ -109,15 +137,31 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#005DAA',
-    paddingTop: 48,
     paddingBottom: 16,
     paddingHorizontal: 16,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   title: {
     color: '#fff',
     fontSize: 22,
     fontWeight: '700',
-    marginBottom: 8,
+  },
+  signOutButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  signOutText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
   headerRow: {
     flexDirection: 'row',

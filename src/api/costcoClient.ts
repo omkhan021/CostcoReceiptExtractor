@@ -3,7 +3,7 @@
  * Endpoint and headers confirmed from network inspection of my.costco.com.
  */
 
-import axios, {type AxiosInstance} from 'axios';
+import axios, {AxiosError, type AxiosInstance} from 'axios';
 import type {AuthCredentials, CostcoReceipt, ReceiptsWithCountsResponse} from '../types';
 import {
   COSTCO_GRAPHQL_URL,
@@ -16,11 +16,69 @@ import {toCostcoDate} from '../utils/dateUtils';
 
 let _client: AxiosInstance | null = null;
 
+// Costco's edge tier (Akamai/Cloudflare) rejects requests without a
+// browser-like User-Agent. RN's default ("okhttp/...") gets dropped silently.
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
+export class CostcoApiError extends Error {
+  status?: number;
+  code?: string;
+  url?: string;
+  responseBody?: string;
+  constructor(opts: {
+    message: string;
+    status?: number;
+    code?: string;
+    url?: string;
+    responseBody?: string;
+  }) {
+    super(opts.message);
+    this.name = 'CostcoApiError';
+    this.status = opts.status;
+    this.code = opts.code;
+    this.url = opts.url;
+    this.responseBody = opts.responseBody;
+  }
+}
+
+function describeAxiosError(err: AxiosError): CostcoApiError {
+  const url = err.config?.url
+    ? `${err.config?.baseURL ?? ''}${err.config.url}`
+    : err.config?.baseURL;
+  const status = err.response?.status;
+  const code = err.code; // ECONNABORTED, ERR_NETWORK, ETIMEDOUT, etc.
+  const body = err.response?.data;
+  const bodyText =
+    typeof body === 'string' ? body : body ? JSON.stringify(body).slice(0, 300) : undefined;
+
+  let message: string;
+  if (status) {
+    message = `HTTP ${status}${bodyText ? `: ${bodyText}` : ''}`;
+  } else if (code === 'ECONNABORTED') {
+    message = 'Request timed out after 30s';
+  } else if (code === 'ERR_NETWORK' || err.message === 'Network Error') {
+    message =
+      'No response from Costco (network/TLS/edge-block). ' +
+      'Token may have expired or session cookies are missing — try signing in again.';
+  } else {
+    message = err.message || 'Unknown network error';
+  }
+
+  // Console log preserves full detail for `adb logcat` / Metro
+  console.warn('[CostcoApiError]', {url, status, code, message, body: bodyText});
+
+  return new CostcoApiError({message, status, code, url, responseBody: bodyText});
+}
+
 export function initClient(creds: AuthCredentials): void {
   _client = axios.create({
     baseURL: COSTCO_GRAPHQL_URL,
     headers: {
       'Content-Type': 'application/json-patch+json',
+      Accept: 'application/json',
+      'User-Agent': BROWSER_USER_AGENT,
       Origin: 'https://www.costco.com',
       Referer: 'https://www.costco.com/',
       'costco.env': 'ecom',
@@ -31,6 +89,16 @@ export function initClient(creds: AuthCredentials): void {
     },
     timeout: 30_000,
   });
+
+  _client.interceptors.response.use(
+    res => res,
+    (err: unknown) => {
+      if (axios.isAxiosError(err)) {
+        return Promise.reject(describeAxiosError(err));
+      }
+      return Promise.reject(err);
+    },
+  );
 }
 
 function getClient(): AxiosInstance {
@@ -38,6 +106,10 @@ function getClient(): AxiosInstance {
     throw new Error('API client not initialized. Call initClient() first.');
   }
   return _client;
+}
+
+export function resetClient(): void {
+  _client = null;
 }
 
 // Confirmed query from network inspection
