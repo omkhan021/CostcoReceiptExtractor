@@ -9,6 +9,7 @@ import {
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import ReceiptItemRow from '../components/ReceiptItemRow';
+import Barcode from '../components/Barcode';
 import {useReceiptDetail} from '../hooks/useReceipts';
 import {formatDisplayDate} from '../utils/dateUtils';
 import type {AppStackParamList} from '../navigation/types';
@@ -57,32 +58,37 @@ export default function ReceiptDetailScreen() {
       keyExtractor={item => item.id.toString()}
       renderItem={renderItem}
       ListHeaderComponent={
-        <View style={styles.header}>
-          <Text style={styles.warehouse}>
-            {receipt.warehouseName ?? 'Costco Warehouse'}
-          </Text>
-          <Text style={styles.date}>
-            {formatDisplayDate(receipt.purchaseDate)}
-          </Text>
-          <Text style={styles.barcode}>{receipt.id}</Text>
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{total}</Text>
+        <>
+          <View style={styles.header}>
+            <Text style={styles.warehouse}>
+              {receipt.warehouseName ?? 'Costco Warehouse'}
+            </Text>
+            <Text style={styles.date}>
+              {formatDisplayDate(receipt.purchaseDate)}
+            </Text>
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>{total}</Text>
+            </View>
+            {receipt.subtotal != null && (
+              <View style={styles.totalsRow}>
+                <Text style={styles.subLabel}>Subtotal</Text>
+                <Text style={styles.subValue}>${receipt.subtotal.toFixed(2)}</Text>
+              </View>
+            )}
+            {receipt.tax != null && (
+              <View style={styles.totalsRow}>
+                <Text style={styles.subLabel}>Tax</Text>
+                <Text style={styles.subValue}>${receipt.tax.toFixed(2)}</Text>
+              </View>
+            )}
           </View>
-          {receipt.subtotal != null && (
-            <View style={styles.totalsRow}>
-              <Text style={styles.subLabel}>Subtotal</Text>
-              <Text style={styles.subValue}>${receipt.subtotal.toFixed(2)}</Text>
-            </View>
-          )}
-          {receipt.tax != null && (
-            <View style={styles.totalsRow}>
-              <Text style={styles.subLabel}>Tax</Text>
-              <Text style={styles.subValue}>${receipt.tax.toFixed(2)}</Text>
-            </View>
-          )}
+          <View style={styles.barcodeCard}>
+            <Barcode value={receipt.id} height={72} moduleWidth={2} />
+            <Text style={styles.barcodeText}>{receipt.id}</Text>
+          </View>
           <Text style={styles.itemsHeader}>Items ({items.length})</Text>
-        </View>
+        </>
       }
       contentContainerStyle={styles.list}
     />
@@ -112,13 +118,29 @@ const styles = StyleSheet.create({
   date: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
-    marginBottom: 4,
-  },
-  barcode: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
     marginBottom: 12,
+  },
+  barcodeCard: {
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  barcodeText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#888',
+    letterSpacing: 1,
     fontVariant: ['tabular-nums'],
+  },
+  itemsHeader: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#f5f5f5',
   },
   totalsRow: {
     flexDirection: 'row',
@@ -142,12 +164,6 @@ const styles = StyleSheet.create({
   subValue: {
     color: 'rgba(255,255,255,0.75)',
     fontSize: 13,
-  },
-  itemsHeader: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 13,
-    marginTop: 10,
-    fontWeight: '600',
   },
   list: {
     paddingBottom: 32,
