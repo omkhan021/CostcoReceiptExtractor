@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {View, Dimensions} from 'react-native';
 
 // Code 128 bar patterns — 11 binary digits each (Stop is 13).
 // 1 = bar (black), 0 = space (white).
@@ -68,10 +68,12 @@ function encodeB(text: string): string | null {
   return vals.map(v => P[v]).join('');
 }
 
+const QUIET_MODULES = 10;
+const WIDTH_FRACTION = 0.8;
+
 interface Props {
   value: string;
   height?: number;
-  moduleWidth?: number;
   color?: string;
   background?: string;
 }
@@ -79,7 +81,6 @@ interface Props {
 export default function Barcode({
   value,
   height = 80,
-  moduleWidth = 2,
   color = '#000000',
   background = '#ffffff',
 }: Props) {
@@ -89,11 +90,13 @@ export default function Barcode({
     return null;
   }
 
-  // Quiet zone: 10 modules of white on each side (scanner requirement).
-  const quiet = moduleWidth * 10;
+  const targetWidth = Dimensions.get('window').width * WIDTH_FRACTION;
+  const totalModules = bits.length + QUIET_MODULES * 2;
+  const moduleWidth = targetWidth / totalModules;
+  const quiet = moduleWidth * QUIET_MODULES;
 
   return (
-    <View style={{flexDirection: 'row', backgroundColor: background, paddingHorizontal: quiet}}>
+    <View style={{width: targetWidth, flexDirection: 'row', backgroundColor: background, paddingHorizontal: quiet}}>
       {bits.split('').map((bit, i) => (
         <View
           key={i}

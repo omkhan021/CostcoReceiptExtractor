@@ -84,7 +84,7 @@ export default function ReceiptDetailScreen() {
             )}
           </View>
           <View style={styles.barcodeCard}>
-            <Barcode value={receipt.id} height={72} moduleWidth={2} />
+            <Barcode value={receipt.id} height={72} />
             <Text style={styles.barcodeText}>{receipt.id}</Text>
           </View>
           <Text style={styles.itemsHeader}>Items ({items.length})</Text>
