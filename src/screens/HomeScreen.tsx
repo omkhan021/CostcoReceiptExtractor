@@ -26,7 +26,7 @@ import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 // Replace with real ad unit ID from AdMob console before publishing
 const AD_UNIT_ID = __DEV__
   ? TestIds.BANNER
-  : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  : 'ca-app-pub-3621391951587249/1971791901';
 
 type Nav = StackNavigationProp<AppStackParamList>;
 
