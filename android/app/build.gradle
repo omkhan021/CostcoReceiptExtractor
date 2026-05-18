@@ -81,13 +81,16 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.costcoreceiptextracter"
+    namespace "com.ktsolutionsltd.costcoreceiptfinder"
     defaultConfig {
-        applicationId "com.costcoreceiptextracter"
+        applicationId "com.ktsolutionsltd.costcoreceiptfinder"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
     }
     signingConfigs {
         debug {

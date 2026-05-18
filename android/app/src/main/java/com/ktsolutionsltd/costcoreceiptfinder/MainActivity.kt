@@ -1,4 +1,4 @@
-package com.costcoreceiptextracter
+package com.ktsolutionsltd.costcoreceiptfinder
 
 import android.os.Bundle
 import com.facebook.react.ReactActivity
@@ -16,7 +16,7 @@ class MainActivity : ReactActivity() {
     super.onCreate(null)
   }
 
-  override fun getMainComponentName(): String = "CostcoReceiptExtracter"
+  override fun getMainComponentName(): String = "CostcoReceiptFinder"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)

@@ -9,7 +9,7 @@ import {
   type Purchase,
 } from 'react-native-iap';
 
-export const IAP_PRODUCT_ID = 'com.costcoreceiptextracter.premium';
+export const IAP_PRODUCT_ID = 'com.ktsolutionsltd.costcoreceiptfinder.premium';
 
 interface PremiumState {
   isPremium: boolean;

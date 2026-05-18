@@ -23,7 +23,6 @@ import type {SearchResult} from '../types';
 import {FREE_SEARCH_LIMIT} from '../utils/constants';
 import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
-// Replace with real ad unit ID from AdMob console before publishing
 const AD_UNIT_ID = __DEV__
   ? TestIds.BANNER
   : 'ca-app-pub-3621391951587249/1971791901';
@@ -70,7 +69,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <View style={[styles.header, {paddingTop: insets.top + 12}]}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Receipt Search</Text>
+          <Text style={styles.title}>Costco Receipt Finder</Text>
           <TouchableOpacity onPress={handleLogout} style={styles.signOutButton}>
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
