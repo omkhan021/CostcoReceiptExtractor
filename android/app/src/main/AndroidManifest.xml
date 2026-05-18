@@ -15,7 +15,7 @@
       <!-- AdMob App ID — replace with real ID from AdMob console before publishing -->
       <meta-data
         android:name="com.google.android.gms.ads.APPLICATION_ID"
-        android:value="ca-app-pub-3940256099942544~3347511713"/>
+        android:value="ca-app-pub-3621391951587249~2747863128"/>
 
       <activity
         android:name=".MainActivity"
