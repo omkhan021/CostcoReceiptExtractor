@@ -4,6 +4,8 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import RootNavigator from './src/navigation/RootNavigator';
 import {initDb} from './src/db/database';
+import {usePremiumStore} from './src/store/premiumStore';
+import mobileAds from 'react-native-google-mobile-ads';
 
 class ErrorBoundary extends Component<
   {children: ReactNode},
@@ -29,11 +31,16 @@ class ErrorBoundary extends Component<
 }
 
 export default function App() {
+  const loadPremium = usePremiumStore(s => s.load);
+
   useEffect(() => {
-    initDb().catch(err => {
-      console.error('Failed to initialize database:', err);
-    });
-  }, []);
+    initDb()
+      .then(loadPremium)
+      .then(() => mobileAds().initialize())
+      .catch(err => {
+        console.error('Failed to initialize:', err);
+      });
+  }, [loadPremium]);
 
   return (
     <ErrorBoundary>

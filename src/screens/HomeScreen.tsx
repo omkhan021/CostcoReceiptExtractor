@@ -13,19 +13,29 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import SearchBar from '../components/SearchBar';
 import ItemResultRow from '../components/ItemResultRow';
+import PaywallModal from '../components/PaywallModal';
 import {useSearch} from '../hooks/useSearch';
 import {useAuthStore} from '../store/authStore';
+import {usePremiumStore} from '../store/premiumStore';
 import {resetClient} from '../api/costcoClient';
 import type {AppStackParamList} from '../navigation/types';
 import type {SearchResult} from '../types';
+import {FREE_SEARCH_LIMIT} from '../utils/constants';
+import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
+
+// Replace with real ad unit ID from AdMob console before publishing
+const AD_UNIT_ID = __DEV__
+  ? TestIds.BANNER
+  : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
 
 type Nav = StackNavigationProp<AppStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
-  const {query, results, isSearching, search} = useSearch();
+  const {query, results, isSearching, search, searchesUsed, limitReached, dismissLimit} = useSearch();
   const {clearCredentials} = useAuthStore();
+  const {isPremium} = usePremiumStore();
 
   function handleLogout() {
     Alert.alert('Sign Out', 'Sign out of Costco? Your local receipts stay on this device.', [
@@ -49,10 +59,12 @@ export default function HomeScreen() {
     return (
       <ItemResultRow
         result={item}
-        onSelectReceipt={(receiptId) => handleSelectReceipt(receiptId, item.itemName)}
+        onSelectReceipt={receiptId => handleSelectReceipt(receiptId, item.itemName)}
       />
     );
   }
+
+  const searchesLeft = Math.max(0, FREE_SEARCH_LIMIT - searchesUsed);
 
   return (
     <View style={styles.container}>
@@ -64,6 +76,11 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         <SearchBar value={query} onChangeText={search} />
+        {!isPremium && (
+          <Text style={styles.searchBadge}>
+            {searchesLeft} free search{searchesLeft !== 1 ? 'es' : ''} left today
+          </Text>
+        )}
       </View>
 
       {isSearching && (
@@ -91,6 +108,18 @@ export default function HomeScreen() {
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
       />
+
+      {!isPremium && (
+        <View style={[styles.adBanner, {paddingBottom: insets.bottom || 8}]}>
+          <BannerAd
+            unitId={AD_UNIT_ID}
+            size={BannerAdSize.BANNER}
+            requestOptions={{requestNonPersonalizedAdsOnly: true}}
+          />
+        </View>
+      )}
+
+      <PaywallModal visible={limitReached} onDismiss={dismissLimit} />
     </View>
   );
 }
@@ -128,6 +157,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  searchBadge: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'right',
+  },
   spinner: {
     marginTop: 24,
   },
@@ -144,5 +179,11 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 24,
+  },
+  adBanner: {
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    backgroundColor: '#f0f0f0',
   },
 });

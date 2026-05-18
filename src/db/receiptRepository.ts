@@ -87,6 +87,7 @@ export async function getReceiptWithItems(
 
 export async function getReceiptsContainingItem(
   itemName: string,
+  since?: string,
 ): Promise<ReceiptOccurrence[]> {
   const db = getDb();
   const result = await db.execute(
@@ -95,8 +96,9 @@ export async function getReceiptsContainingItem(
      FROM receipts r
      JOIN receipt_items ri ON ri.receipt_id = r.id
      WHERE ri.item_name = ?
+       ${since ? 'AND r.purchase_date >= ?' : ''}
      ORDER BY r.purchase_date DESC`,
-    [itemName],
+    since ? [itemName, since] : [itemName],
   );
   return result.rows.map(row => ({
     receiptId: row.receiptId as string,

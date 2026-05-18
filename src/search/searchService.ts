@@ -2,7 +2,10 @@ import {getReceiptsContainingItem} from '../db/receiptRepository';
 import type {SearchResult} from '../types';
 import {getFuseIndex} from './fuseIndex';
 
-export async function searchItems(query: string): Promise<SearchResult[]> {
+export async function searchItems(
+  query: string,
+  since?: string,
+): Promise<SearchResult[]> {
   if (!query.trim()) {
     return [];
   }
@@ -14,7 +17,7 @@ export async function searchItems(query: string): Promise<SearchResult[]> {
 
   for (const fuseResult of fuseResults) {
     const {itemName, itemNumber} = fuseResult.item;
-    const receipts = await getReceiptsContainingItem(itemName);
+    const receipts = await getReceiptsContainingItem(itemName, since);
 
     if (receipts.length === 0) {
       continue;

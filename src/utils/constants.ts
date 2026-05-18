@@ -41,5 +41,9 @@ export const DB_NAME = 'costco_receipts.db';
 export const FUSE_THRESHOLD = 0.35; // 0 = exact match, 1 = match anything
 export const SEARCH_DEBOUNCE_MS = 250;
 
+// Free tier limits
+export const FREE_SEARCH_LIMIT = 3;       // searches per day
+export const FREE_HISTORY_MONTHS = 3;     // months of receipt history
+
 // Secure storage keys
 export const STORAGE_KEY_CREDENTIALS = 'costco_credentials';
