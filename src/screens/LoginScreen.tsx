@@ -54,7 +54,7 @@ export default function LoginScreen() {
         <TouchableOpacity
           style={styles.signInButton}
           onPress={() => webViewRef.current?.injectJavaScript(GO_TO_LOGON_JS)}>
-          <Text style={styles.signInButtonText}>Open Sign In</Text>
+          <Text style={styles.signInButtonText}>Extract Receipts</Text>
         </TouchableOpacity>
       </View>
       {isCapturing && (
