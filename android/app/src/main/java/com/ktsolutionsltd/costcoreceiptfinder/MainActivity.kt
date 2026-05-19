@@ -13,6 +13,10 @@ class MainActivity : ReactActivity() {
   // "Screen fragments should never be restored").
   // https://github.com/software-mansion/react-native-screens/issues/17
   override fun onCreate(savedInstanceState: Bundle?) {
+    // Swap from the LaunchTheme splash to the regular AppTheme before the
+    // activity window is created, so the splash drawable only shows during
+    // cold start.
+    setTheme(R.style.AppTheme)
     super.onCreate(null)
   }
 

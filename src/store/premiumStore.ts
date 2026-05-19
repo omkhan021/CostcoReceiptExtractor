@@ -3,9 +3,10 @@ import {getConfig, setConfig} from '../db/configRepository';
 import {
   initConnection,
   requestPurchase,
-  getProducts,
+  fetchProducts,
   finishTransaction,
   purchaseUpdatedListener,
+  purchaseErrorListener,
   type Purchase,
 } from 'react-native-iap';
 
@@ -36,8 +37,12 @@ export const usePremiumStore = create<PremiumState>((set, get) => ({
       await initConnection();
 
       purchaseUpdatedListener(async (purchase: Purchase) => {
-        await finishTransaction({purchase});
+        await finishTransaction({purchase, isConsumable: false});
         await get().unlock();
+      });
+
+      purchaseErrorListener((err) => {
+        set({isPurchasing: false, purchaseError: err?.message ?? 'Purchase failed'});
       });
     } catch {
       // IAP not available (simulator, no Play Services, etc.) — ignore
@@ -52,8 +57,14 @@ export const usePremiumStore = create<PremiumState>((set, get) => ({
   purchase: async () => {
     set({isPurchasing: true, purchaseError: null});
     try {
-      await getProducts({skus: [IAP_PRODUCT_ID]});
-      await requestPurchase({skus: [IAP_PRODUCT_ID]});
+      await fetchProducts({skus: [IAP_PRODUCT_ID], type: 'in-app'});
+      await requestPurchase({
+        request: {
+          google: {skus: [IAP_PRODUCT_ID]},
+          apple: {sku: IAP_PRODUCT_ID},
+        },
+        type: 'in-app',
+      });
       // unlock() is called by purchaseUpdatedListener when Google confirms
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

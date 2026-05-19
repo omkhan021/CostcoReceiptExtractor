@@ -1,11 +1,15 @@
-import React, {useEffect, Component, type ReactNode} from 'react';
-import {StatusBar, View, Text, ScrollView, StyleSheet} from 'react-native';
+import React, {useEffect, useRef, useState, Component, type ReactNode} from 'react';
+import {Animated, StatusBar, View, Text, ScrollView, StyleSheet} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import RootNavigator from './src/navigation/RootNavigator';
+import SplashScreen from './src/components/SplashScreen';
 import {initDb} from './src/db/database';
 import {usePremiumStore} from './src/store/premiumStore';
 import mobileAds from 'react-native-google-mobile-ads';
+
+const SPLASH_MIN_MS = 2200;
+const SPLASH_FADE_MS = 500;
 
 class ErrorBoundary extends Component<
   {children: ReactNode},
@@ -32,15 +36,28 @@ class ErrorBoundary extends Component<
 
 export default function App() {
   const loadPremium = usePremiumStore(s => s.load);
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const [splashVisible, setSplashVisible] = useState(true);
 
   useEffect(() => {
-    initDb()
+    const minDisplay = new Promise<void>(resolve =>
+      setTimeout(() => resolve(), SPLASH_MIN_MS),
+    );
+    const init = initDb()
       .then(loadPremium)
       .then(() => mobileAds().initialize())
       .catch(err => {
         console.error('Failed to initialize:', err);
       });
-  }, [loadPremium]);
+
+    Promise.all([minDisplay, init]).finally(() => {
+      Animated.timing(splashOpacity, {
+        toValue: 0,
+        duration: SPLASH_FADE_MS,
+        useNativeDriver: true,
+      }).start(() => setSplashVisible(false));
+    });
+  }, [loadPremium, splashOpacity]);
 
   return (
     <ErrorBoundary>
@@ -48,6 +65,7 @@ export default function App() {
         <SafeAreaProvider>
           <StatusBar barStyle="light-content" backgroundColor="#005DAA" />
           <RootNavigator />
+          {splashVisible && <SplashScreen opacity={splashOpacity} />}
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>
